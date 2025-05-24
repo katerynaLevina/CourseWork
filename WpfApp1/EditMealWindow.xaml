@@ -1,0 +1,129 @@
+<Window x:Class="WpfApp1.EditMealWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Редагування прийому їжі" Height="500" Width="600"
+        WindowStartupLocation="CenterOwner"
+        Icon="D:\Встановленні програми\JetBrains Rider 2024.2.5\ООП\WpfApp1\WpfApp1\Assets\pencil.png"
+        Background="SeaGreen"
+        FontFamily="Segoe UI">
+    <Border Margin="10" CornerRadius="8" Background="SeaGreen"
+            BorderThickness="1" BorderBrush="SeaGreen"
+            >
+        <Grid Margin="15">
+            <Grid.Resources>
+                <Style TargetType="Button">
+                    <Setter Property="Background" Value="#FF4CAF82"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="BorderBrush" Value="Transparent"/>
+                    <Setter Property="Padding" Value="8 4"/>
+                    <Setter Property="FontSize" Value="14"/>
+                    <Setter Property="BorderThickness" Value="1"/>
+                    <Setter Property="Cursor" Value="Hand"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="border" 
+                                        Background="{TemplateBinding Background}" 
+                                        BorderBrush="{TemplateBinding BorderBrush}" 
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="4">
+                                    <ContentPresenter HorizontalAlignment="Center" 
+                                                      VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#FF3D8B6E"/>
+                                        <Setter Property="BorderBrush" Value="#FF2E5E4E"/>
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter Property="Background" Value="#FF2E5E4E"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+                <Style TargetType="DataGrid">
+                    <Setter Property="BorderBrush" Value="#FFD1E7DD"/>
+                    <Setter Property="BorderThickness" Value="1"/>
+                    <Setter Property="Background" Value="White"/>
+                    <Setter Property="RowBackground" Value="White"/>
+                    <Setter Property="AlternatingRowBackground" Value="#FFF5F9F7"/>
+                    <Setter Property="GridLinesVisibility" Value="None"/>
+                    <Setter Property="HeadersVisibility" Value="Column"/>
+                    <Setter Property="VerticalGridLinesBrush" Value="#FFE0F0E8"/>
+                    <Setter Property="HorizontalGridLinesBrush" Value="#FFE0F0E8"/>
+                    <Setter Property="FontSize" Value="14"/>
+                </Style>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#FF4CAF82"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="Padding" Value="8 4"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </Style>
+                <Style TargetType="TextBox">
+                    <Setter Property="BorderBrush" Value="#FFD1E7DD"/>
+                    <Setter Property="BorderThickness" Value="1"/>
+                    <Setter Property="Background" Value="White"/>
+                    <Setter Property="Padding" Value="8"/>
+                    <Setter Property="FontSize" Value="14"/>
+                </Style>
+            </Grid.Resources>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="200"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="{Binding DayAndMeal}" 
+                       FontSize="18" FontWeight="SemiBold"
+                       Margin="0 0 0 15" Foreground="#2E5E4E"/>
+
+            <TextBox Grid.Row="1" x:Name="MealTextBox" 
+                     AcceptsReturn="True" TextWrapping="Wrap"
+                     VerticalScrollBarVisibility="Auto"
+                     FontSize="14" Padding="8"
+                     BorderThickness="1" BorderBrush="#FFD1E7DD"
+                     Background="White"/>
+
+            <TextBlock Grid.Row="2" Text="Додати продукти:" 
+                       FontSize="15" FontWeight="SemiBold"
+                       Margin="0 15 0 8" Foreground="#2E5E4E"/>
+            
+            <DataGrid Grid.Row="3" x:Name="ProductsGrid" 
+                      AutoGenerateColumns="False"
+                      SelectionMode="Single"
+                      HeadersVisibility="Column"
+                      CanUserAddRows="False"
+                      Margin="0 0 0 15">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Назва" Binding="{Binding Name}" Width="*"/>
+                    <DataGridTextColumn Header="Ккал" Binding="{Binding Calories}" Width="0.5*"/>
+                    <DataGridTextColumn Header="Білки" Binding="{Binding Protein}" Width="0.5*"/>
+                    <DataGridTextColumn Header="Жири" Binding="{Binding Fat}" Width="0.5*"/>
+                    <DataGridTextColumn Header="Вугл." Binding="{Binding Carbohydrates}" Width="0.5*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <StackPanel Grid.Row="4" Orientation="Horizontal" 
+                        HorizontalAlignment="Right" Margin="0 15 0 0">
+                <Button Content="Додати продукт" Width="130" Margin="0 0 10 0"
+                        Click="AddProduct_Click" Background="#FF5FBAA7"/>
+                <Button Content="Видалити" Width="100" Margin="0 0 10 0"
+                        Click="DeleteProduct_Click" Background="#FFE57373"/>
+                <Button Content="Скасувати" Width="100" Margin="0 0 10 0"
+                        Click="CancelButton_Click" Background="White" Foreground="#2E5E4E" BorderBrush="#FFD1E7DD"/>
+                <Button Content="Зберегти" Width="100" 
+                        Background="#FF4CAF82" Foreground="White"
+                        Click="SaveButton_Click"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+    
+    <Window.Resources>
+        <DropShadowEffect x:Key="ShadowEffect" BlurRadius="10" ShadowDepth="2" Color="#33000000" Direction="270"/>
+    </Window.Resources>
+</Window>
