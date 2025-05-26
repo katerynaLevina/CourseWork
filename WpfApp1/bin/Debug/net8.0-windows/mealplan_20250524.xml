@@ -14,7 +14,11 @@
     <MealEntry>
       <MealType>Обід</MealType>
       <MealIcon>🍲</MealIcon>
-      <Saturday />
+      <Saturday>Додані продукти:
+- Банан (89 ккал)
+
+Всього: 89 ккал, Білки: 1,1g, Жири: 0,3g, Вуглеводи: 23,0g
+</Saturday>
     </MealEntry>
     <MealEntry>
       <MealType>Перекус</MealType>

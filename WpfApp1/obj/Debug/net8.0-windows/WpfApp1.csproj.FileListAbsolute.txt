@@ -28,3 +28,4 @@ D:\Встановленні програми\JetBrains Rider 2024.2.5\ООП\Wpf
 D:\Встановленні програми\JetBrains Rider 2024.2.5\ООП\WpfApp1\WpfApp1\obj\Debug\net8.0-windows\MealWindow.g.cs
 D:\Встановленні програми\JetBrains Rider 2024.2.5\ООП\WpfApp1\WpfApp1\obj\Debug\net8.0-windows\EditMealWindow.baml
 D:\Встановленні програми\JetBrains Rider 2024.2.5\ООП\WpfApp1\WpfApp1\obj\Debug\net8.0-windows\EditMealWindow.g.cs
+D:\Встановленні програми\JetBrains Rider 2024.2.5\ООП\WpfApp1\WpfApp1\obj\Debug\net8.0-windows\WpfApp1.sourcelink.json

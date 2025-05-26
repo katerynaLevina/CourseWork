@@ -13,11 +13,11 @@ using System.Windows.Media;
 
 namespace WpfApp1
 {
-    public partial class FoodWindow : Window, INotifyPropertyChanged
+    public partial class FoodWindow : Window
     {
         private List<FoodItem> allFoodItems;
         private string _searchText;
-        private ICommand _searchCommand;
+        
 
         private const string FilePath = "foods.json";
 
@@ -25,24 +25,10 @@ namespace WpfApp1
         {
             InitializeComponent();
             DataContext = this;
-            
             LoadFoodItems();
         }
 
-        public string SearchText
-        {
-            get => _searchText;
-            set
-            {
-                _searchText = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public ICommand SearchCommand => _searchCommand ??= new RelayCommand(
-            _ => SearchFoodItems(),
-            _ => !string.IsNullOrWhiteSpace(SearchText)
-        );
+        
 
         private void LoadFoodItems()
         {
@@ -169,11 +155,7 @@ namespace WpfApp1
             }
         }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        
     }
 
     public class FoodItem
@@ -185,25 +167,5 @@ namespace WpfApp1
         public double Carbohydrates { get; set; }
     }
 
-    public class RelayCommand : ICommand
-    {
-        private readonly Action<object?> _execute;
-        private readonly Predicate<object?>? _canExecute;
-
-        public RelayCommand(Action<object?> execute, Predicate<object?>? canExecute = null)
-        {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
-        }
-
-        public bool CanExecute(object? parameter) => _canExecute?.Invoke(parameter) ?? true;
-
-        public void Execute(object? parameter) => _execute(parameter);
-
-        public event EventHandler? CanExecuteChanged
-        {
-            add => CommandManager.RequerySuggested += value!;
-            remove => CommandManager.RequerySuggested -= value!;
-        }
-    }
+ 
 }

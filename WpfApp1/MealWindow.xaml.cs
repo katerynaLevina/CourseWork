@@ -139,8 +139,7 @@ namespace WpfApp1
         private void MealGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             var cellInfo = MealGrid.CurrentCell;
-            if (cellInfo == null || cellInfo.Column == null) return;
-
+            
             var mealEntry = cellInfo.Item as MealEntry;
             if (mealEntry == null) return;
 
@@ -152,7 +151,7 @@ namespace WpfApp1
             {
                 SetMealValue(mealEntry, dayOfWeek, editWindow.MealDescription);
 
-                // Завершуємо редагування перед Refresh()
+               
                 var view = CollectionViewSource.GetDefaultView(MealGrid.ItemsSource);
                 if (view is IEditableCollectionView editableView)
                 {
