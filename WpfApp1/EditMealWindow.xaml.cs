@@ -13,7 +13,7 @@ namespace WpfApp1
         public string MealDescription { get; private set; }
         public List<FoodItem> SelectedProducts { get; } = new List<FoodItem>();
         private List<FoodItem> _allProducts;
-    
+
         public string DayAndMeal { get; }
 
         public EditMealWindow(string dayOfWeek, string mealType, string currentValue)
@@ -22,19 +22,19 @@ namespace WpfApp1
             DataContext = this;
             _allProducts = new List<FoodItem>();
             LoadProducts();
-    
+
             DayAndMeal = $"{dayOfWeek}, {mealType}";
-            
+
             if (!string.IsNullOrEmpty(currentValue))
             {
                 var lines = currentValue.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
                 var productLines = lines.Where(l => l.StartsWith("- ")).ToList();
-        
+
                 if (productLines.Any())
                 {
                     var manualDescription = string.Join("\n", lines.TakeWhile(l => !l.StartsWith("- ")));
                     MealTextBox.Text = manualDescription;
-                    
+
                     foreach (var line in productLines)
                     {
                         var productName = line.Substring(2).Split('(')[0].Trim();
@@ -49,8 +49,6 @@ namespace WpfApp1
                     MealTextBox.Text = currentValue;
                 }
             }
-    
-            LoadProducts();
         }
 
         private void LoadProducts()
@@ -72,11 +70,9 @@ namespace WpfApp1
         private void DeleteProduct_Click(object sender, RoutedEventArgs e)
         {
             SelectedProducts.Clear();
-            
             MealTextBox.Clear();
-            
             ProductsGrid.Items.Refresh();
-            
+
             MessageBox.Show("Прийом їжі очищено.", "Інформація", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
@@ -84,19 +80,22 @@ namespace WpfApp1
         {
             if (ProductsGrid.SelectedItem is FoodItem selectedProduct)
             {
-                if (!SelectedProducts.Any(p => p.Name == selectedProduct.Name))
+                var input = Microsoft.VisualBasic.Interaction.InputBox(
+                    $"Скільки грамів {selectedProduct.Name} ви з'їли?",
+                    "Введіть вагу", "100");
+
+                if (double.TryParse(input.Replace(',', '.'), System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture, out double grams) && grams > 0)
                 {
-                    SelectedProducts.Add(new FoodItem 
-                    {
-                        Name = selectedProduct.Name,
-                        Calories = selectedProduct.Calories,
-                        Protein = selectedProduct.Protein,
-                        Fat = selectedProduct.Fat,
-                        Carbohydrates = selectedProduct.Carbohydrates
-                    });
-                    
-                    ProductsGrid.Items.Refresh(); 
+                    var portion = selectedProduct.CalculateForWeight(grams);
+
+                    SelectedProducts.Add(portion);
+                    ProductsGrid.Items.Refresh();
                     UpdateMealDescription();
+                }
+                else
+                {
+                    MessageBox.Show("Некоректне значення ваги. Спробуйте ще раз.", "Помилка", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
         }
@@ -104,20 +103,20 @@ namespace WpfApp1
         private void UpdateMealDescription()
         {
             var description = new StringBuilder();
-            
+
             if (SelectedProducts.Any())
             {
                 description.AppendLine("\nДодані продукти:");
                 foreach (var product in SelectedProducts)
                 {
-                    description.AppendLine($"- {product.Name} ({product.Calories} ккал)");
+                    description.AppendLine(
+                        $"- {product.Name} ({product.Calories:F1} ккал, Б: {product.Protein:F1}г, Ж: {product.Fat:F1}г, В: {product.Carbohydrates:F1}г)");
                 }
             }
-    
+
             MealTextBox.Text = description.ToString();
-            MealTextBox.CaretIndex = MealTextBox.Text.Length; 
+            MealTextBox.CaretIndex = MealTextBox.Text.Length;
         }
-        
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
@@ -138,7 +137,7 @@ namespace WpfApp1
                         Carbs = SelectedProducts.Sum(p => p.Carbohydrates)
                     };
 
-                    mealDetails.AppendLine($"\nВсього: {total.Calories} ккал, Білки: {total.Protein:F1}g, Жири: {total.Fat:F1}g, Вуглеводи: {total.Carbs:F1}g");
+                    mealDetails.AppendLine($"\nВсього: {total.Calories:F1} ккал, Білки: {total.Protein:F1}г, Жири: {total.Fat:F1}г, Вуглеводи: {total.Carbs:F1}г");
                 }
 
                 MealDescription = mealDetails.ToString();
@@ -154,7 +153,6 @@ namespace WpfApp1
                 Close();
             }
         }
-
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {

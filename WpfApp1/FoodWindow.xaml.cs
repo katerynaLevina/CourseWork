@@ -160,12 +160,28 @@ namespace WpfApp1
 
     public class FoodItem
     {
-        public string Name { get; set; } = string.Empty; 
-        public int Calories { get; set; }
-        public double Protein { get; set; }
-        public double Fat { get; set; }
-        public double Carbohydrates { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public int Calories { get; set; }       // на 100 г
+        public double Protein { get; set; }     // на 100 г
+        public double Fat { get; set; }         // на 100 г
+        public double Carbohydrates { get; set; } // на 100 г
+
+        // правки
+        public FoodItem CalculateForWeight(double weightGrams)
+        {
+            double factor = weightGrams / 100.0;
+            return new FoodItem
+            {
+                Name = $"{Name} ({weightGrams} г)",
+                Calories = (int)Math.Round(Calories * factor),
+                Protein = Math.Round(Protein * factor, 2),
+                Fat = Math.Round(Fat * factor, 2),
+                Carbohydrates = Math.Round(Carbohydrates * factor, 2)
+            };
+        }
     }
+
+
 
  
 }
