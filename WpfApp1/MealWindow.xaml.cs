@@ -17,18 +17,27 @@ namespace WpfApp1
     {
         private ObservableCollection<MealEntry> mealEntries;
         
-        public class DailyCalories
+        public class NutritionInfo
         {
-            public int MondayCalories { get; set; }
-            public int TuesdayCalories { get; set; }
-            public int WednesdayCalories { get; set; }
-            public int ThursdayCalories { get; set; }
-            public int FridayCalories { get; set; }
-            public int SaturdayCalories { get; set; }
-            public int SundayCalories { get; set; }
+            public int Calories { get; set; }
+            public int Proteins { get; set; }
+            public int Fats { get; set; }
+            public int Carbs { get; set; }
+        }
+
+        public class DailyNutrition
+        {
+            public NutritionInfo Monday { get; set; } = new();
+            public NutritionInfo Tuesday { get; set; } = new();
+            public NutritionInfo Wednesday { get; set; } = new();
+            public NutritionInfo Thursday { get; set; } = new();
+            public NutritionInfo Friday { get; set; } = new();
+            public NutritionInfo Saturday { get; set; } = new();
+            public NutritionInfo Sunday { get; set; } = new();
         }
         
-        private DailyCalories dailyCalories = new DailyCalories();
+        private DailyNutrition dailyNutrition = new DailyNutrition();
+
         
         public class MealEntry
         {
@@ -121,7 +130,7 @@ namespace WpfApp1
                         GoalTextBox.Text = loadedData.Goal;
                         mealEntries = new ObservableCollection<MealEntry>(loadedData.Meals);
                         MealGrid.ItemsSource = mealEntries;
-                        CalculateCalories();
+                        CalculateNutrition();
                         UpdateTotalCaloriesText();
                     }
                 }
@@ -162,7 +171,7 @@ namespace WpfApp1
                 }
 
                 MealGrid.Items.Refresh();
-                CalculateCalories();
+                CalculateNutrition();
                 UpdateTotalCaloriesText();
             }
         }
@@ -210,63 +219,100 @@ namespace WpfApp1
             }
         }
 
-        private void UpdateCalories_Click(object sender, RoutedEventArgs e)
+        private void CalculateNutrition()
         {
-            CalculateCalories();
-            UpdateTotalCaloriesText();
+            dailyNutrition.Monday = CalculateDayNutrition("Понеділок");
+            dailyNutrition.Tuesday = CalculateDayNutrition("Вівторок");
+            dailyNutrition.Wednesday = CalculateDayNutrition("Середа");
+            dailyNutrition.Thursday = CalculateDayNutrition("Четвер");
+            dailyNutrition.Friday = CalculateDayNutrition("П'ятниця");
+            dailyNutrition.Saturday = CalculateDayNutrition("Субота");
+            dailyNutrition.Sunday = CalculateDayNutrition("Неділя");
         }
 
-        private void CalculateCalories()
-        {
-            dailyCalories.MondayCalories = CalculateDayCalories("Понеділок");
-            dailyCalories.TuesdayCalories = CalculateDayCalories("Вівторок");
-            dailyCalories.WednesdayCalories = CalculateDayCalories("Середа");
-            dailyCalories.ThursdayCalories = CalculateDayCalories("Четвер");
-            dailyCalories.FridayCalories = CalculateDayCalories("П'ятниця");
-            dailyCalories.SaturdayCalories = CalculateDayCalories("Субота");
-            dailyCalories.SundayCalories = CalculateDayCalories("Неділя");
-        }
 
-        private int CalculateDayCalories(string day)
+        private NutritionInfo CalculateDayNutrition(string day)
         {
-            int total = 0;
+            var info = new NutritionInfo();
             foreach (var mealEntry in mealEntries)
             {
                 string meal = GetMealValue(mealEntry, day);
-                
                 if (!string.IsNullOrEmpty(meal))
                 {
-                    total += EstimateCaloriesFromText(meal);
+                    var extracted = ExtractNutritionFromText(meal);
+                    info.Calories += extracted.Calories;
+                    info.Proteins += extracted.Proteins;
+                    info.Fats += extracted.Fats;
+                    info.Carbs += extracted.Carbs;
                 }
             }
-            return total;
+            return info;
         }
 
-        private int EstimateCaloriesFromText(string mealText)
+
+        // правки обрахунок кбжв статистика
+        private NutritionInfo ExtractNutritionFromText(string text)
         {
-            var regex = new System.Text.RegularExpressions.Regex(@"Всього:\s*(\d+)");
-            var match = regex.Match(mealText);
+            var info = new NutritionInfo();
 
-            if (match.Success && int.TryParse(match.Groups[1].Value, out int calories))
+            var regex = new System.Text.RegularExpressions.Regex(
+                @"Всього:\s*([\d,]+)\s*ккал.*?Білки:\s*([\d,]+)г.*?Жири:\s*([\d,]+)г.*?Вуглеводи:\s*([\d,]+)г",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Singleline);
+
+            var match = regex.Match(text);
+
+            if (match.Success)
             {
-                return calories;
+                if (TryParseDecimal(match.Groups[1].Value, out int calories))
+                    info.Calories = calories;
+
+                if (TryParseDecimal(match.Groups[2].Value, out int proteins))
+                    info.Proteins = proteins;
+
+                if (TryParseDecimal(match.Groups[3].Value, out int fats))
+                    info.Fats = fats;
+
+                if (TryParseDecimal(match.Groups[4].Value, out int carbs))
+                    info.Carbs = carbs;
             }
-            return 0;
+
+            return info;
         }
+
+
+        private bool TryParseDecimal(string input, out int result)
+        {
+            result = 0;
+            
+            var normalized = input.Replace(',', '.');
+
+            if (double.TryParse(normalized, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double val))
+            {
+                result = (int)Math.Round(val);
+                return true;
+            }
+            return false;
+        }
+
+
 
 
 
         private void UpdateTotalCaloriesText()
         {
-            TotalCaloriesText.Text = $"Загальна кількість калорій: \n" +
-                                    $"Понеділок: {dailyCalories.MondayCalories} | " +
-                                    $"Вівторок: {dailyCalories.TuesdayCalories} | " +
-                                    $"Середа: {dailyCalories.WednesdayCalories} | " +
-                                    $"Четвер: {dailyCalories.ThursdayCalories} | " +
-                                    $"П'ятниця: {dailyCalories.FridayCalories} | " +
-                                    $"Субота: {dailyCalories.SaturdayCalories} | " +
-                                    $"Неділя: {dailyCalories.SundayCalories}";
+            string FormatDay(string name, NutritionInfo n) =>
+                $"{name}: {n.Calories} ккал, Б: {n.Proteins}г, Ж: {n.Fats}г, В: {n.Carbs}г";
+
+            TotalCaloriesText.Text = "Загальна кількість за день:\n" +
+                                     FormatDay("Понеділок", dailyNutrition.Monday) + "\n" +
+                                     FormatDay("Вівторок", dailyNutrition.Tuesday) + "\n" +
+                                     FormatDay("Середа", dailyNutrition.Wednesday) + "\n" +
+                                     FormatDay("Четвер", dailyNutrition.Thursday) + "\n" +
+                                     FormatDay("П'ятниця", dailyNutrition.Friday) + "\n" +
+                                     FormatDay("Субота", dailyNutrition.Saturday) + "\n" +
+                                     FormatDay("Неділя", dailyNutrition.Sunday);
         }
+
 
         private void MealGrid_LoadingRow(object sender, DataGridRowEventArgs e)
         {

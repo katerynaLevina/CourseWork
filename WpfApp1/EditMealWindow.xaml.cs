@@ -110,7 +110,7 @@ namespace WpfApp1
                 foreach (var product in SelectedProducts)
                 {
                     description.AppendLine(
-                        $"- {product.Name} ({product.Calories:F1} ккал, Б: {product.Protein:F1}г, Ж: {product.Fat:F1}г, В: {product.Carbohydrates:F1}г)");
+                        $"- {product.Name} ({product.Calories:F1} ккал)");
                 }
             }
 
