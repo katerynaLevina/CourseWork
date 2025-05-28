@@ -38,19 +38,47 @@ namespace WpfApp1
         
         private DailyNutrition dailyNutrition = new DailyNutrition();
 
-        
+        // правка 
         public class MealEntry
         {
             public string MealType { get; set; }
             public string MealIcon { get; set; }
-            public string Monday { get; set; }
-            public string Tuesday { get; set; }
-            public string Wednesday { get; set; }
-            public string Thursday { get; set; }
-            public string Friday { get; set; }
-            public string Saturday { get; set; }
-            public string Sunday { get; set; }
+            public List<FoodItem> Monday { get; set; } = new();
+            public List<FoodItem> Tuesday { get; set; } = new();
+            public List<FoodItem> Wednesday { get; set; } = new();
+            public List<FoodItem> Thursday { get; set; } = new();
+            public List<FoodItem> Friday { get; set; } = new();
+            public List<FoodItem> Saturday { get; set; } = new();
+            public List<FoodItem> Sunday { get; set; } = new();
+            
+            private static string GetMealSummary(List<FoodItem> items)
+            {
+                if (items == null || !items.Any())
+                    return "";
+
+                var summary = new System.Text.StringBuilder();
+                summary.AppendLine("Додані продукти:");
+
+                foreach (var item in items)
+                {
+                    summary.AppendLine($"{item.Name}: {item.Calories} ккал, Б: {item.Protein}г, Ж: {item.Fat}г, В: {item.Carbohydrates}г");
+                }
+
+                return summary.ToString().TrimEnd();
+            }
+
+            
+            public string MondaySummary => GetMealSummary(Monday);
+            public string TuesdaySummary => GetMealSummary(Tuesday);
+            public string WednesdaySummary => GetMealSummary(Wednesday);
+            public string ThursdaySummary => GetMealSummary(Thursday);
+            public string FridaySummary => GetMealSummary(Friday);
+            public string SaturdaySummary => GetMealSummary(Saturday);
+            public string SundaySummary => GetMealSummary(Sunday);
+
+
         }
+
 
         public class MealPlanData
         {
@@ -83,22 +111,76 @@ namespace WpfApp1
             mealEntries.Add(new MealEntry { MealType = "Додатковий прийом", MealIcon = "🍽️" });
         }
 
+        
+        private void SaveButton_Click(object sender, RoutedEventArgs e)
+        {
+            SaveMealsToFile();
+            MessageBox.Show("План харчування збережено!");
+        }
+
+        private DateTime GetStartOfWeek(DateTime date)
+        {
+            int diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
+            return date.AddDays(-diff).Date;
+        }
+
+        public class AllMealPlans
+        {
+            public List<MealPlanData> Plans { get; set; } = new List<MealPlanData>();
+        }
+        
+        private const string AllPlansFileName = "all_mealplans.xml";
+
+        // правки аби все зберігалось в одному файлі, підвантажується відповідно до обраного тижня
         private void SaveMealsToFile()
         {
-            var saveData = new MealPlanData
-            {
-                Week = WeekPicker.SelectedDate ?? DateTime.Today,
-                Goal = GoalTextBox.Text,
-                Meals = new List<MealEntry>(mealEntries)
-            };
+            var selectedDate = WeekPicker.SelectedDate ?? DateTime.Today;
+            var weekStart = GetStartOfWeek(selectedDate);
 
+            
+            AllMealPlans allPlans = new AllMealPlans();
+
+            if (File.Exists(AllPlansFileName))
+            {
+                try
+                {
+                    var serializer = new XmlSerializer(typeof(AllMealPlans));
+                    using (var reader = new StreamReader(AllPlansFileName))
+                    {
+                        allPlans = (AllMealPlans)serializer.Deserialize(reader);
+                    }
+                }
+                catch
+                {
+                    
+                    allPlans = new AllMealPlans();
+                }
+            }
+
+            
+            var existingPlan = allPlans.Plans.FirstOrDefault(p => p.Week == weekStart);
+
+            if (existingPlan != null)
+            {
+                existingPlan.Goal = GoalTextBox.Text;
+                existingPlan.Meals = mealEntries.ToList();
+            }
+            else
+            {
+                allPlans.Plans.Add(new MealPlanData
+                {
+                    Week = weekStart,
+                    Goal = GoalTextBox.Text,
+                    Meals = mealEntries.ToList()
+                });
+            }
+            
             try
             {
-                var serializer = new XmlSerializer(typeof(MealPlanData));
-                var filename = $"mealplan_{saveData.Week:yyyyMMdd}.xml";
-                using (var writer = new StreamWriter(filename))
+                var serializer = new XmlSerializer(typeof(AllMealPlans));
+                using (var writer = new StreamWriter(AllPlansFileName))
                 {
-                    serializer.Serialize(writer, saveData);
+                    serializer.Serialize(writer, allPlans);
                 }
             }
             catch (Exception ex)
@@ -107,117 +189,109 @@ namespace WpfApp1
             }
         }
 
-        private void SaveButton_Click(object sender, RoutedEventArgs e)
-        {
-            SaveMealsToFile();
-            MessageBox.Show("План харчування збережено!");
-        }
 
-        private void LoadButton_Click(object sender, RoutedEventArgs e)
+        private void LoadMealsFromFile()
         {
             var selectedDate = WeekPicker.SelectedDate ?? DateTime.Today;
-            var filename = $"mealplan_{selectedDate:yyyyMMdd}.xml";
+            var weekStart = GetStartOfWeek(selectedDate);
 
-            if (File.Exists(filename))
+            if (!File.Exists(AllPlansFileName))
             {
-                try
+                MessageBox.Show("Файл планів не знайдено.");
+                return;
+            }
+
+            try
+            {
+                var serializer = new XmlSerializer(typeof(AllMealPlans));
+                using (var reader = new StreamReader(AllPlansFileName))
                 {
-                    var serializer = new XmlSerializer(typeof(MealPlanData));
-                    using (var reader = new StreamReader(filename))
+                    var allPlans = (AllMealPlans)serializer.Deserialize(reader);
+
+                    var plan = allPlans.Plans.FirstOrDefault(p => p.Week == weekStart);
+
+                    if (plan != null)
                     {
-                        var loadedData = (MealPlanData)serializer.Deserialize(reader);
-                        WeekPicker.SelectedDate = loadedData.Week;
-                        GoalTextBox.Text = loadedData.Goal;
-                        mealEntries = new ObservableCollection<MealEntry>(loadedData.Meals);
+                        WeekPicker.SelectedDate = plan.Week;
+                        GoalTextBox.Text = plan.Goal;
+                        mealEntries = new ObservableCollection<MealEntry>(plan.Meals);
                         MealGrid.ItemsSource = mealEntries;
+
                         CalculateNutrition();
                         UpdateTotalCaloriesText();
                     }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Помилка завантаження: {ex.Message}");
+                    else
+                    {
+                        MessageBox.Show("План харчування для обраного тижня не знайдено.");
+                    }
                 }
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show("План харчування для обраного тижня не знайдено.");
+                MessageBox.Show($"Помилка завантаження: {ex.Message}");
             }
         }
+
+
+        private void LoadButton_Click(object sender, RoutedEventArgs e)
+        {
+            LoadMealsFromFile();
+        }
+
+
 
         private void MealGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             var cellInfo = MealGrid.CurrentCell;
-            
             var mealEntry = cellInfo.Item as MealEntry;
             if (mealEntry == null) return;
 
-            string dayOfWeek = cellInfo.Column.Header.ToString();
-            string currentValue = GetMealValue(mealEntry, dayOfWeek);
+            string dayOfWeek = cellInfo.Column?.Header?.ToString();
+            if (string.IsNullOrEmpty(dayOfWeek)) return;
 
-            var editWindow = new EditMealWindow(dayOfWeek, mealEntry.MealType, currentValue);
+            var editWindow = new EditMealWindow(dayOfWeek, mealEntry.MealType, null);
             if (editWindow.ShowDialog() == true)
             {
-                SetMealValue(mealEntry, dayOfWeek, editWindow.MealDescription);
-
-               
-                var view = CollectionViewSource.GetDefaultView(MealGrid.ItemsSource);
-                if (view is IEditableCollectionView editableView)
+                SetMealItems(mealEntry, dayOfWeek, new List<FoodItem>(editWindow.SelectedProducts));
+                
+                if (MealGrid.CommitEdit(DataGridEditingUnit.Row, true))
                 {
-                    if (editableView.IsEditingItem)
-                        editableView.CommitEdit();
-                    if (editableView.IsAddingNew)
-                        editableView.CommitNew();
+                    MealGrid.Items.Refresh(); 
                 }
 
-                MealGrid.Items.Refresh();
                 CalculateNutrition();
                 UpdateTotalCaloriesText();
             }
         }
+        
+        
+        private List<FoodItem> GetMealItems(MealEntry entry, string day) => day switch
+        {
+            "Понеділок" => entry.Monday,
+            "Вівторок" => entry.Tuesday,
+            "Середа" => entry.Wednesday,
+            "Четвер" => entry.Thursday,
+            "П'ятниця" => entry.Friday,
+            "Субота" => entry.Saturday,
+            "Неділя" => entry.Sunday,
+            _ => new List<FoodItem>()
+        };
 
-        private string GetMealValue(MealEntry meal, string day)
+
+        private void SetMealItems(MealEntry entry, string day, List<FoodItem> items)
         {
             switch (day)
             {
-                case "Понеділок": return meal.Monday;
-                case "Вівторок": return meal.Tuesday;
-                case "Середа": return meal.Wednesday;
-                case "Четвер": return meal.Thursday;
-                case "П'ятниця": return meal.Friday;
-                case "Субота": return meal.Saturday;
-                case "Неділя": return meal.Sunday;
-                default: return string.Empty;
+                case "Понеділок": entry.Monday = items; break;
+                case "Вівторок": entry.Tuesday = items; break;
+                case "Середа": entry.Wednesday = items; break;
+                case "Четвер": entry.Thursday = items; break;
+                case "П'ятниця": entry.Friday = items; break;
+                case "Субота": entry.Saturday = items; break;
+                case "Неділя": entry.Sunday = items; break;
             }
         }
 
-        private void SetMealValue(MealEntry mealEntry, string dayOfWeek, string value)
-        {
-            switch (dayOfWeek)
-            {
-                case "Понеділок":
-                    mealEntry.Monday = value;
-                    break;
-                case "Вівторок":
-                    mealEntry.Tuesday = value;
-                    break;
-                case "Середа":
-                    mealEntry.Wednesday = value;
-                    break;
-                case "Четвер":
-                    mealEntry.Thursday = value;
-                    break;
-                case "П'ятниця":
-                    mealEntry.Friday = value;
-                    break;
-                case "Субота":
-                    mealEntry.Saturday = value;
-                    break;
-                case "Неділя":
-                    mealEntry.Sunday = value;
-                    break;
-            }
-        }
 
         private void CalculateNutrition()
         {
@@ -231,70 +305,23 @@ namespace WpfApp1
         }
 
 
+        // обрахунок кбжв використовуючи об'єкти FoodItem
         private NutritionInfo CalculateDayNutrition(string day)
         {
             var info = new NutritionInfo();
             foreach (var mealEntry in mealEntries)
             {
-                string meal = GetMealValue(mealEntry, day);
-                if (!string.IsNullOrEmpty(meal))
+                var items = GetMealItems(mealEntry, day);
+                foreach (var item in items)
                 {
-                    var extracted = ExtractNutritionFromText(meal);
-                    info.Calories += extracted.Calories;
-                    info.Proteins += extracted.Proteins;
-                    info.Fats += extracted.Fats;
-                    info.Carbs += extracted.Carbs;
+                    info.Calories += item.Calories;
+                    info.Proteins += (int)Math.Round(item.Protein);
+                    info.Fats += (int)Math.Round(item.Fat);
+                    info.Carbs += (int)Math.Round(item.Carbohydrates);
                 }
             }
             return info;
         }
-
-
-        // правки обрахунок кбжв статистика
-        private NutritionInfo ExtractNutritionFromText(string text)
-        {
-            var info = new NutritionInfo();
-
-            var regex = new System.Text.RegularExpressions.Regex(
-                @"Всього:\s*([\d,]+)\s*ккал.*?Білки:\s*([\d,]+)г.*?Жири:\s*([\d,]+)г.*?Вуглеводи:\s*([\d,]+)г",
-                System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Singleline);
-
-            var match = regex.Match(text);
-
-            if (match.Success)
-            {
-                if (TryParseDecimal(match.Groups[1].Value, out int calories))
-                    info.Calories = calories;
-
-                if (TryParseDecimal(match.Groups[2].Value, out int proteins))
-                    info.Proteins = proteins;
-
-                if (TryParseDecimal(match.Groups[3].Value, out int fats))
-                    info.Fats = fats;
-
-                if (TryParseDecimal(match.Groups[4].Value, out int carbs))
-                    info.Carbs = carbs;
-            }
-
-            return info;
-        }
-
-
-        private bool TryParseDecimal(string input, out int result)
-        {
-            result = 0;
-            
-            var normalized = input.Replace(',', '.');
-
-            if (double.TryParse(normalized, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double val))
-            {
-                result = (int)Math.Round(val);
-                return true;
-            }
-            return false;
-        }
-
-
 
 
 

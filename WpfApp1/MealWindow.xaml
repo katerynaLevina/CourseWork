@@ -214,7 +214,10 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                     
-                    <DataGridTextColumn Header="Понеділок" Binding="{Binding Monday}" Width="*">
+                    <DataGridTextColumn Header="Понеділок" Width="*">
+                        <DataGridTextColumn.Binding>
+                            <Binding Path="MondaySummary" Mode="OneWay" />
+                        </DataGridTextColumn.Binding>
                         <DataGridTextColumn.HeaderStyle>
                             <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
                                 <Setter Property="Background" Value="#4CAF82"/>
@@ -233,7 +236,10 @@
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
                     
-                    <DataGridTextColumn Header="Вівторок" Binding="{Binding Tuesday}" Width="*">
+                    <DataGridTextColumn Header="Вівторок" Width="*">
+                        <DataGridTextColumn.Binding>
+                            <Binding Path="TuesdaySummary" Mode="OneWay" />
+                        </DataGridTextColumn.Binding>
                         <DataGridTextColumn.HeaderStyle>
                             <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
                                 <Setter Property="Background" Value="#4CAF82"/>
@@ -251,7 +257,10 @@
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
                     
-                    <DataGridTextColumn Header="Середа" Binding="{Binding Wednesday}" Width="*">
+                    <DataGridTextColumn Header="Середа" Width="*">
+                        <DataGridTextColumn.Binding>
+                            <Binding Path="WednesdaySummary" Mode="OneWay" />
+                        </DataGridTextColumn.Binding>
                         <DataGridTextColumn.HeaderStyle>
                             <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
                                 <Setter Property="Background" Value="#4CAF82"/>
@@ -269,7 +278,10 @@
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
                     
-                    <DataGridTextColumn Header="Четвер" Binding="{Binding Thursday}" Width="*">
+                    <DataGridTextColumn Header="Четвер" Width="*">
+                        <DataGridTextColumn.Binding>
+                            <Binding Path="ThursdaySummary" Mode="OneWay" />
+                        </DataGridTextColumn.Binding>
                         <DataGridTextColumn.HeaderStyle>
                             <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
                                 <Setter Property="Background" Value="#4CAF82"/>
@@ -287,7 +299,10 @@
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
                     
-                    <DataGridTextColumn Header="П'ятниця" Binding="{Binding Friday}" Width="*">
+                    <DataGridTextColumn Header="П'ятниця" Width="*">
+                        <DataGridTextColumn.Binding>
+                            <Binding Path="FridaySummary" Mode="OneWay" />
+                        </DataGridTextColumn.Binding>
                         <DataGridTextColumn.HeaderStyle>
                             <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
                                 <Setter Property="Background" Value="#4CAF82"/>
@@ -305,7 +320,10 @@
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
                     
-                    <DataGridTextColumn Header="Субота" Binding="{Binding Saturday}" Width="*">
+                    <DataGridTextColumn Header="Субота" Width="*">
+                        <DataGridTextColumn.Binding>
+                            <Binding Path="SaturdaySummary" Mode="OneWay" />
+                        </DataGridTextColumn.Binding>
                         <DataGridTextColumn.HeaderStyle>
                             <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
                                 <Setter Property="Background" Value="#4CAF82"/>
@@ -323,7 +341,10 @@
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
                     
-                    <DataGridTextColumn Header="Неділя" Binding="{Binding Sunday}" Width="*">
+                    <DataGridTextColumn Header="Неділя" Width="*">
+                        <DataGridTextColumn.Binding>
+                            <Binding Path="SundaySummary" Mode="OneWay" />
+                        </DataGridTextColumn.Binding>
                         <DataGridTextColumn.HeaderStyle>
                             <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
                                 <Setter Property="Background" Value="#4CAF82"/>
